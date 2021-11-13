@@ -74,6 +74,35 @@ def follow_external_links_only(starting_site):
     follow_external_links_only(external_link)
 
 
+all_internal_links = set()
+all_external_links = set()
+
+
+def get_all_external_urls_on_site(starting_page):
+    html = urlopen(starting_page)
+    bs = BeautifulSoup(html, 'html.parser')
+    domain = '{}://{}'.format(urlparse(starting_page).scheme, urlparse(starting_page).netloc)
+    external_links = get_external_links(bs, urlparse(starting_page).netloc)
+    internal_links = get_internal_links(bs, domain)
+
+    for link in external_links:
+        if link not in all_external_links and is_valid_page(link):
+            print(link)
+            all_external_links.add(link)
+
+    for link in internal_links:
+        if link not in all_internal_links and is_valid_page(link):
+            all_internal_links.add(link)
+            get_all_external_urls_on_site(link)
+
+
 if __name__ == '__main__':
     random.seed(datetime.datetime.now())
-    follow_external_links_only('https://stackoverflow.com')
+
+    # follow_external_links_only('https://youtube.com')
+
+    get_all_external_urls_on_site('https://flock.com')
+
+    print("###### All internal links ######")
+    for link in all_internal_links:
+        print(link)
